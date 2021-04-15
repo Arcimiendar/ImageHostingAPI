@@ -20,6 +20,12 @@ class ThumbnailSize(models.Model):
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
 
+    class Meta:
+        unique_together = ('width', 'height')
+
+    def __str__(self):
+        return f'size {self.width}x{self.height}'
+
 
 class AccountPlan(Group):
     thumbnail_sizes = models.ManyToManyField(ThumbnailSize, related_name='account_plans')

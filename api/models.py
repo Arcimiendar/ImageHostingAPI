@@ -27,10 +27,22 @@ class ThumbnailSize(models.Model):
         return f'size {self.width}x{self.height}'
 
 
-class AccountPlan(Group):
+class AccountPlan(models.Model):
     thumbnail_sizes = models.ManyToManyField(ThumbnailSize, related_name='account_plans')
-    original_link_available = models.BooleanField(default=bool)  # default False
+    have_access_to_original_link = models.BooleanField(default=bool)  # default False
     can_create_expirable_links = models.BooleanField(default=bool)
+    name = models.CharField(max_length=256)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class AccountPlanAssignement(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    account = models.ForeignKey(AccountPlan, on_delete=models.SET_DEFAULT, null=True, default=1)
+
+    def __str__(self):
+        return f'{self.account} to {self.user}'
 
 
 class ExpirableLink(models.Model):
@@ -41,4 +53,3 @@ class ExpirableLink(models.Model):
         MinValueValidator(timedelta(seconds=300)),
         MaxValueValidator(timedelta(seconds=30000))
     ])
-

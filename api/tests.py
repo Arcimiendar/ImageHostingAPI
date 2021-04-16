@@ -143,3 +143,20 @@ class TestImageCreate(TestCase):
 
     def tearDown(self) -> None:
         self.user.delete()
+
+
+class TestGetBasicThumbnails(TestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user('test_user_name')
+        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=2)
+        self.image = Image.objects.create(
+            uploader=self.user, image_file=File(open('api/image.jpg', 'rb'))
+        )
+
+    def test_get_basic_thumbnails(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('thumbnails'))
+        self.assertEqual(len(response.data), 2)
+
+    def tearDown(self) -> None:
+        self.user.delete()

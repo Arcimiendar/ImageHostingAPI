@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Image, ExpirableLink
+from api.models import Image, ExpirableLink, Thumbnail, ThumbnailSize
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -13,3 +13,17 @@ class ExpirableLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpirableLink
         fields = '__all__'
+
+
+class ThumnailSizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ThumbnailSize
+        fields = '__all__'
+
+
+class ThumbnailSerializer(serializers.ModelSerializer):
+    thumbnail_size = ThumnailSizeSerializer(read_only=True)
+
+    class Meta:
+        model = Thumbnail
+        exclude = ['original_image']

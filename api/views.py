@@ -4,8 +4,8 @@ from django.db.models.functions import Now
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from api.models import Image, ExpirableLink
-from api.serializers import ExpirableLinkSerializer, ImageSerializer
+from api.models import Image, ExpirableLink, Thumbnail
+from api.serializers import ExpirableLinkSerializer, ImageSerializer, ThumbnailSerializer
 from api.permissions import (
     IsCreationOfExpirableLinkAllowedOrReadOnly,
     ReadIfHasPermissionElseWriteOnly
@@ -26,3 +26,12 @@ class ExpirableLinkModelView(viewsets.ModelViewSet):
     ).filter(expiration_time__gt=Now())
     permission_classes = [IsCreationOfExpirableLinkAllowedOrReadOnly]
 
+
+class ThumbnailModelView(viewsets.ModelViewSet):
+    serializer_class = ThumbnailSerializer
+    queryset = Thumbnail.objects
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super(ThumbnailModelView, self).get_queryset()
+        return queryset.filter(original_image__uploader=self.request.user)

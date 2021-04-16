@@ -10,8 +10,6 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ExpirableLinkSerializer(serializers.ModelSerializer):
-    image = ImageSerializer
-
     class Meta:
         model = ExpirableLink
         fields = '__all__'

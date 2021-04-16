@@ -5,14 +5,17 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from api.models import Image, ExpirableLink
-from api.serializers import ExpirableLinkSerializer
-from api.permissions import IsCreationOfExpirableLinkAllowedOrReadOnly
+from api.serializers import ExpirableLinkSerializer, ImageSerializer
+from api.permissions import (
+    IsCreationOfExpirableLinkAllowedOrReadOnly,
+    ReadIfHasPermissionElseWriteOnly
+)
 
 
 class ImageModelView(viewsets.ModelViewSet):
     queryset = Image.objects
-    serializer_class = None
-    permission_classes = [IsAuthenticated]
+    serializer_class = ImageSerializer
+    permission_classes = [ReadIfHasPermissionElseWriteOnly]
 
 
 class ExpirableLinkModelView(viewsets.ModelViewSet):

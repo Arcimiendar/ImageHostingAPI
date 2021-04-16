@@ -100,7 +100,7 @@ class TestImageList(TestCase):
     def test_list(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('image'))
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response.data), 1)
 
     def tearDown(self) -> None:
         self.user.delete()
@@ -118,7 +118,7 @@ class TestImageListFailed(TestCase):
     def test_list(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('image'))
-        self.assertEqual(response.method, 403)
+        self.assertEqual(response.status_code, 403)
 
     def tearDown(self) -> None:
         self.user.delete()

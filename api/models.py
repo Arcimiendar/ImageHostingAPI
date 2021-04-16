@@ -24,9 +24,13 @@ class Image(models.Model):
 
     def save(self, *args, **kwargs):
         status = super(Image, self).save(*args, **kwargs)
-        sizes = AccountPlanAssignement.objects.get(user=self.uploader).account_plan.thumbnail_sizes.filter(
-           ~models.Q(thumbnail__in=self.thumbnail_set.all())
-        )
+        if not hasattr(self.uploader, 'account_plan_assignement'):
+            assignement = AccountPlanAssignement.objects.create(user=self.uploader, account_plan_id=1)
+            sizes = assignement.account_plan.thumbnail_sizes.filter(~models.Q(thumbnail__in=self.thumbnail_set.all()))
+        else:
+            sizes = self.uploader.account_plan_assignement.account_plan.thumbnail_sizes.filter(
+               ~models.Q(thumbnail__in=self.thumbnail_set.all())
+            )
         storage = Storage()
         for size in sizes:
             img = ImageObject.open(self.image_file.file.file)

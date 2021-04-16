@@ -1,19 +1,52 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.files.storage import get_storage_class
 from django.utils.timezone import now
 from django.contrib.auth.models import Group
 from django.core.validators import MaxValueValidator, MinValueValidator
-from thumbnails.fields import ImageField
 
+from thumbnails.fields import ImageField
+from PIL import Image as ImageObject
+
+from io import BytesIO
 from datetime import timedelta
+
+import os
 
 
 User = get_user_model()
+Storage = get_storage_class()
 
 
 class Image(models.Model):
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
     image_file = ImageField()
+
+    def save(self, *args, **kwargs):
+        status = super(Image, self).save(*args, **kwargs)
+        sizes = AccountPlanAssignement.objects.get(user=self.uploader).account_plan.thumbnail_sizes.filter(
+           ~models.Q(thumbnail__in=self.thumbnail_set.all())
+        )
+        storage = Storage()
+        for size in sizes:
+            img = ImageObject.open(self.image_file.file.file)
+            img.thumbnail((size.width, size.height))
+            new_img_io = BytesIO()
+            img.save(new_img_io, format='JPEG')
+            splitted_ext = os.path.splitext(self.image_file.path)
+            if len(splitted_ext) > 1:
+                filename, ext = splitted_ext
+            else:
+                filename, ext = splitted_ext[0], '.jpg'
+            filename = storage.generate_filename(filename + str(size) + ext)
+            storage.save(filename, new_img_io)
+
+            Thumbnail.objects.create(
+                thumbnail_size=size, original_image=self,
+                thumbnail_image=storage.open(filename)
+            )
+
+        return status
 
 
 class ThumbnailSize(models.Model):
@@ -27,10 +60,19 @@ class ThumbnailSize(models.Model):
         return f'size {self.width}x{self.height}'
 
 
+class Thumbnail(models.Model):
+    thumbnail_size = models.ForeignKey(ThumbnailSize, on_delete=models.CASCADE)
+    original_image = models.ForeignKey(Image, on_delete=models.CASCADE)
+    thumbnail_image = ImageField()
+
+    class Meta:
+        unique_together = ('thumbnail_size', 'original_image')
+
+
 class AccountPlan(models.Model):
     thumbnail_sizes = models.ManyToManyField(ThumbnailSize, related_name='account_plans')
-    have_access_to_original_link = models.BooleanField(default=bool)  # default False
-    can_create_expirable_links = models.BooleanField(default=bool)
+    have_access_to_original_link = models.BooleanField(default=False)
+    can_create_expirable_links = models.BooleanField(default=False)
     name = models.CharField(max_length=256)
 
     def __str__(self):
@@ -38,11 +80,13 @@ class AccountPlan(models.Model):
 
 
 class AccountPlanAssignement(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    account = models.ForeignKey(AccountPlan, on_delete=models.SET_DEFAULT, null=True, default=1)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True, related_name='account_plan_assignement'
+    )
+    account_plan = models.ForeignKey(AccountPlan, on_delete=models.SET_DEFAULT, null=True, default=1)
 
     def __str__(self):
-        return f'{self.account} to {self.user}'
+        return f'{self.account_plan} to {self.user}'
 
 
 class ExpirableLink(models.Model):
@@ -53,3 +97,6 @@ class ExpirableLink(models.Model):
         MinValueValidator(timedelta(seconds=300)),
         MaxValueValidator(timedelta(seconds=30000))
     ])
+
+    def __str__(self):
+        return f'Expirable  link {self.image} created_at {self.time_created} experation_period {self.experation_period}'

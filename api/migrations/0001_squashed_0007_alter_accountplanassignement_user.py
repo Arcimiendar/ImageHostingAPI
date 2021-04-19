@@ -39,7 +39,7 @@ def create_default_account_plans(apps, schema_editor):
         name='Enterprise', pk=3, have_access_to_original_link=True, can_create_expirable_links=True
     )
     enterprise.save()
-    enterprise.thumbnail_sizes.add(standart_thumbnail_200x200, standart_thumbnail_200x200)
+    enterprise.thumbnail_sizes.add(standart_thumbnail_200x200, standart_thumbnail_400x400)
 
 
 def delete_default_thumbnail_sizes(apps, schema_editor):

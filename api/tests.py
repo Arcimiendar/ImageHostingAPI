@@ -16,55 +16,52 @@ Storage = get_storage_class()
 
 class TestExperibableLink(TestCase):
     def test_expired(self):
-        self.storage = Storage()
-        self.user = User.objects.create_user('test_user_name')
-        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=3)
-        self.image = Image.objects.create(
-            uploader=self.user, image_file=File(open('static/test_image.jpg', 'rb'))
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        image = Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
         self.expirable_link = ExpirableLink.objects.create(
-            image=self.image, creator=self.user,
+            image=image,
             time_created=datetime(2000, 1, 1, 1, tzinfo=pytz.UTC),
             experation_period=timedelta(300)
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(user)
         response = self.client.get(reverse('expirable-link'))
         self.assertEqual(len(response.data), 0)
 
-        self.user.delete()
+        user.delete()
 
     def test_not_expired(self):
-        self.storage = Storage()
-        self.user = User.objects.create_user('test_user_name')
-        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=3)
-        self.image = Image.objects.create(
-            uploader=self.user, image_file=File(open('static/test_image.jpg', 'rb'))
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        image = Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
         self.expirable_link = ExpirableLink.objects.create(
-            image=self.image, creator=self.user,
+            image=image,
             time_created=datetime.now(tz=pytz.UTC),
             experation_period=timedelta(4000)
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(user)
         response = self.client.get(reverse('expirable-link'))
         self.assertEqual(len(response.data), 1)
 
-        self.user.delete()
+        user.delete()
 
     def test_create(self):
-        self.storage = Storage()
-        self.user = User.objects.create_user('test_user_name')
-        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=3)
-        self.image = Image.objects.create(
-            uploader=self.user, image_file=File(open('static/test_image.jpg', 'rb'))
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        image = Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(user)
         response = self.client.post(
             reverse('expirable-link'), data={
-                'image': self.image.id,
+                'image': image.id,
                 'experation_period': '5:00'
             }
         )
@@ -74,44 +71,62 @@ class TestExperibableLink(TestCase):
         response = self.client.get(reverse('expirable-link'))
         self.assertEqual(len(response.data), 1)
 
-        self.user.delete()
+        user.delete()
+
+    def test_failed_to_create(self):
+        user1 = User.objects.create_user('test_user_name1')
+        user2 = User.objects.create_user('test_user_name2')
+        AccountPlanAssignement.objects.create(user=user1, account_plan_id=3)
+        AccountPlanAssignement.objects.create(user=user2, account_plan_id=3)
+        image = Image.objects.create(
+            uploader=user1, image_file=File(open('static/test_image.jpg', 'rb'))
+        )
+
+        self.client.force_login(user2)
+        response = self.client.post(
+            reverse('expirable-link'), data={
+                'image': image.id,
+                'experation_period': '5:00'
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+
+        user1.delete()
+        user2.delete()
 
 
 class TestImage(TestCase):
     def test_list(self):
-        self.storage = Storage()
-        self.user = User.objects.create_user('test_user_name')
-        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=3)
-        self.image = Image.objects.create(
-            uploader=self.user, image_file=File(open('static/test_image.jpg', 'rb'))
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(user)
         response = self.client.get(reverse('image'))
         self.assertEqual(len(response.data), 1)
 
-        self.user.delete()
+        user.delete()
 
     def test_list_failed(self):
-        self.storage = Storage()
-        self.user = User.objects.create_user('test_user_name')
-        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=1)
-        self.image = Image.objects.create(
-            uploader=self.user, image_file=File(open('static/test_image.jpg', 'rb'))
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=1)
+        Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(user)
         response = self.client.get(reverse('image'))
         self.assertEqual(response.status_code, 403)
 
-        self.user.delete()
+        user.delete()
 
     def test_create(self):
-        self.storage = Storage()
-        self.user = User.objects.create_user('test_user_name')
-        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=1)
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=1)
 
-        self.client.force_login(self.user)
+        self.client.force_login(user)
         with open('static/test_image.jpg', 'rb') as f:
             response = self.client.post(reverse('image'), data={
                 'image_file': f
@@ -119,19 +134,19 @@ class TestImage(TestCase):
         self.assertIn('image_file', response.data)
         self.assertIn('id', response.data)
 
-        self.user.delete()
+        user.delete()
 
 
 class TestThumbnails(TestCase):
     def test_get_basic_thumbnails(self):
-        self.user = User.objects.create_user('test_user_name')
-        self.account_plan_assignement = AccountPlanAssignement.objects.create(user=self.user, account_plan_id=2)
-        self.image = Image.objects.create(
-            uploader=self.user, image_file=File(open('static/test_image.jpg', 'rb'))
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=2)
+        Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(user)
         response = self.client.get(reverse('thumbnails'))
         self.assertEqual(len(response.data), 2)
 
-        self.user.delete()
+        user.delete()

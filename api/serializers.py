@@ -12,11 +12,14 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ExpirableLinkSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
     class Meta:
         model = ExpirableLink
         fields = '__all__'
+
+    def validate_image(self, image):
+        if self.context['request'].user != image.uploader:
+            raise serializers.ValidationError('image does not balong this user')
+        return image
 
 
 class ThumnailSizeSerializer(serializers.ModelSerializer):

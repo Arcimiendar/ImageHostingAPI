@@ -26,10 +26,10 @@ class Image(models.Model):
         status = super(Image, self).save(*args, **kwargs)
         if not hasattr(self.uploader, 'account_plan_assignement'):
             assignement = AccountPlanAssignement.objects.create(user=self.uploader, account_plan_id=1)
-            sizes = assignement.account_plan.thumbnail_sizes.filter(~models.Q(thumbnail__in=self.thumbnail_set.all()))
+            sizes = assignement.account_plan.thumbnail_sizes.filter(~models.Q(thumbnail__in=self.thumbnails.all()))
         else:
             sizes = self.uploader.account_plan_assignement.account_plan.thumbnail_sizes.filter(
-               ~models.Q(thumbnail__in=self.thumbnail_set.all())
+               ~models.Q(thumbnail__in=self.thumbnails.all())
             )
         storage = Storage()
         for size in sizes:
@@ -66,7 +66,7 @@ class ThumbnailSize(models.Model):
 
 class Thumbnail(models.Model):
     thumbnail_size = models.ForeignKey(ThumbnailSize, on_delete=models.CASCADE)
-    original_image = models.ForeignKey(Image, on_delete=models.CASCADE)
+    original_image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='thumbnails')
     thumbnail_image = ImageField()
 
     class Meta:
@@ -94,7 +94,6 @@ class AccountPlanAssignement(models.Model):
 
 
 class ExpirableLink(models.Model):
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
     time_created = models.DateTimeField(default=now)
     experation_period = models.DurationField(validators=[

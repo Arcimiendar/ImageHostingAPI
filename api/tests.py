@@ -150,3 +150,22 @@ class TestThumbnails(TestCase):
         self.assertEqual(len(response.data), 2)
 
         user.delete()
+
+    def test_filer(self):
+        user = User.objects.create_user('test_user_name')
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=2)
+        specific_image = Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
+        )
+        Image.objects.create(
+            uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('thumbnails'))
+        self.assertEqual(len(response.data), 4)
+
+        response = self.client.get(reverse('thumbnails'), {'image': specific_image.id})
+        self.assertEqual(len(response.data), 2)
+
+        user.delete()

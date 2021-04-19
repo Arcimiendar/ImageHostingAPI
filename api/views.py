@@ -34,4 +34,6 @@ class ThumbnailModelView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super(ThumbnailModelView, self).get_queryset()
+        if self.request.query_params.get('image'):
+            queryset = queryset.filter(original_image__pk=int(self.request.query_params.get('image')))
         return queryset.filter(original_image__uploader=self.request.user)

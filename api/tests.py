@@ -21,7 +21,7 @@ class TestExperibableLink(TestCase):
         image = Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
-        self.expirable_link = ExpirableLink.objects.create(
+        expirable_link = ExpirableLink.objects.create(
             image=image,
             time_created=datetime(2000, 1, 1, 1, tzinfo=pytz.UTC),
             experation_period=timedelta(300)
@@ -31,6 +31,9 @@ class TestExperibableLink(TestCase):
         response = self.client.get(reverse('expirable-link'))
         self.assertEqual(len(response.data), 0)
 
+        response = self.client.get(expirable_link.generate_temporary_link())
+        self.assertEqual(response.status_code, 404)
+
         user.delete()
 
     def test_not_expired(self):
@@ -39,7 +42,7 @@ class TestExperibableLink(TestCase):
         image = Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
-        self.expirable_link = ExpirableLink.objects.create(
+        ExpirableLink.objects.create(
             image=image,
             time_created=datetime.now(tz=pytz.UTC),
             experation_period=timedelta(4000)
@@ -48,6 +51,9 @@ class TestExperibableLink(TestCase):
         self.client.force_login(user)
         response = self.client.get(reverse('expirable-link'))
         self.assertEqual(len(response.data), 1)
+
+        response = self.client.get(response.data[0]['temporary_link'])
+        self.assertEqual(response.status_code, 200)
 
         user.delete()
 

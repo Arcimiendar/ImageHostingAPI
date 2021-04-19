@@ -8,6 +8,11 @@ class ExpirableLinkSerializer(serializers.ModelSerializer):
         model = ExpirableLink
         fields = '__all__'
 
+    def to_representation(self, instance):
+        representation = super(ExpirableLinkSerializer, self).to_representation(instance)
+        representation['temporary_link'] = instance.generate_temporary_link(self.context['request'])
+        return representation
+
     def validate_image(self, image):
         if self.context['request'].user != image.uploader:
             raise serializers.ValidationError('image does not balong this user')

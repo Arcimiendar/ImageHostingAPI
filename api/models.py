@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.files.storage import get_storage_class
+from django.urls import reverse
 from django.utils.timezone import now
 from django.contrib.auth.models import Group
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -100,6 +101,17 @@ class ExpirableLink(models.Model):
         MinValueValidator(timedelta(seconds=300)),
         MaxValueValidator(timedelta(seconds=30000))
     ])
+
+    @classmethod
+    def filter_by_temporary_link(cls, temporary_link):
+        return cls.objects.filter(pk=int(temporary_link))
+
+    def generate_temporary_link(self, request=None):
+        obj = reverse('temporary-link', kwargs={'expirable_link': self.id})
+        if request:
+            return request.build_absolute_uri(obj)
+        else:
+            return obj
 
     def __str__(self):
         return f'Expirable  link {self.image} created_at {self.time_created} experation_period {self.experation_period}'

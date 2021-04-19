@@ -3,14 +3,6 @@ from rest_framework import serializers
 from api.models import Image, ExpirableLink, Thumbnail, ThumbnailSize
 
 
-class ImageSerializer(serializers.ModelSerializer):
-    uploader = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = Image
-        fields = '__all__'
-
-
 class ExpirableLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpirableLink
@@ -34,3 +26,12 @@ class ThumbnailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Thumbnail
         exclude = ['original_image']
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    uploader = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    thumbnails = ThumbnailSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Image
+        fields = '__all__'

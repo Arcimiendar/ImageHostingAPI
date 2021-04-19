@@ -35,3 +35,9 @@ class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
         fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super(ImageSerializer, self).to_representation(instance)
+        if not instance.uploader.account_plan_assignement.account_plan.have_access_to_original_link:
+            representation.pop('image_file')
+        return representation

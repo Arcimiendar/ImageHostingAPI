@@ -96,7 +96,7 @@ class TestExperibableLink(TestCase):
 
 
 class TestImage(TestCase):
-    def test_list(self):
+    def test_presence_of_links(self):
         user = User.objects.create_user('test_user_name')
         AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
         Image.objects.create(
@@ -106,10 +106,11 @@ class TestImage(TestCase):
         self.client.force_login(user)
         response = self.client.get(reverse('image'))
         self.assertEqual(len(response.data), 1)
+        self.assertIn('image_file', response.data[0])
 
         user.delete()
 
-    def test_list_failed(self):
+    def test_missed_links(self):
         user = User.objects.create_user('test_user_name')
         AccountPlanAssignement.objects.create(user=user, account_plan_id=1)
         Image.objects.create(
@@ -118,7 +119,7 @@ class TestImage(TestCase):
 
         self.client.force_login(user)
         response = self.client.get(reverse('image'))
-        self.assertEqual(response.status_code, 403)
+        self.assertNotIn('image_file', response.data[0])
 
         user.delete()
 
@@ -131,8 +132,8 @@ class TestImage(TestCase):
             response = self.client.post(reverse('image'), data={
                 'image_file': f
             })
-        self.assertIn('image_file', response.data)
         self.assertIn('id', response.data)
+        self.assertIn('thumbnails', response.data)
 
         user.delete()
 

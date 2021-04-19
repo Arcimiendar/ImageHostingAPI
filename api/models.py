@@ -75,6 +75,9 @@ class Thumbnail(models.Model):
 
 
 class AccountPlan(models.Model):
+    BASIC_ID = 1
+    PREMIUM_ID = 2
+    ENTERPRISE_ID = 3
     thumbnail_sizes = models.ManyToManyField(ThumbnailSize, related_name='account_plans')
     have_access_to_original_link = models.BooleanField(default=False)
     can_create_expirable_links = models.BooleanField(default=False)
@@ -88,7 +91,7 @@ class AccountPlanAssignement(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True, related_name='account_plan_assignement'
     )
-    account_plan = models.ForeignKey(AccountPlan, on_delete=models.SET_DEFAULT, null=True, default=1)
+    account_plan = models.ForeignKey(AccountPlan, on_delete=models.SET_DEFAULT, null=True, default=AccountPlan.BASIC_ID)
 
     def __str__(self):
         return f'{self.account_plan} to {self.user}'

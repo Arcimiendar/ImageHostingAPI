@@ -7,7 +7,7 @@ from django.urls import reverse
 from datetime import datetime, timedelta
 import pytz
 
-from api.models import Image, ExpirableLink, AccountPlanAssignement
+from api.models import Image, ExpirableLink, AccountPlanAssignement, AccountPlan
 
 
 User = get_user_model()
@@ -17,7 +17,7 @@ Storage = get_storage_class()
 class TestExperibableLink(TestCase):
     def test_expired(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.ENTERPRISE_ID)
         image = Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
@@ -38,7 +38,7 @@ class TestExperibableLink(TestCase):
 
     def test_not_expired(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.ENTERPRISE_ID)
         image = Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
@@ -59,7 +59,7 @@ class TestExperibableLink(TestCase):
 
     def test_create(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.ENTERPRISE_ID)
         image = Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
@@ -82,8 +82,8 @@ class TestExperibableLink(TestCase):
     def test_failed_to_create(self):
         user1 = User.objects.create_user('test_user_name1')
         user2 = User.objects.create_user('test_user_name2')
-        AccountPlanAssignement.objects.create(user=user1, account_plan_id=3)
-        AccountPlanAssignement.objects.create(user=user2, account_plan_id=3)
+        AccountPlanAssignement.objects.create(user=user1, account_plan_id=AccountPlan.ENTERPRISE_ID)
+        AccountPlanAssignement.objects.create(user=user2, account_plan_id=AccountPlan.ENTERPRISE_ID)
         image = Image.objects.create(
             uploader=user1, image_file=File(open('static/test_image.jpg', 'rb'))
         )
@@ -104,7 +104,7 @@ class TestExperibableLink(TestCase):
 class TestImage(TestCase):
     def test_presence_of_links(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=3)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.ENTERPRISE_ID)
         Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
@@ -118,7 +118,7 @@ class TestImage(TestCase):
 
     def test_missed_links(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=1)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.BASIC_ID)
         Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
@@ -131,7 +131,7 @@ class TestImage(TestCase):
 
     def test_create(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=1)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.BASIC_ID)
 
         self.client.force_login(user)
         with open('static/test_image.jpg', 'rb') as f:
@@ -147,7 +147,7 @@ class TestImage(TestCase):
 class TestThumbnails(TestCase):
     def test_get_basic_thumbnails(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=2)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.PREMIUM_ID)
         Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )
@@ -160,7 +160,7 @@ class TestThumbnails(TestCase):
 
     def test_filer(self):
         user = User.objects.create_user('test_user_name')
-        AccountPlanAssignement.objects.create(user=user, account_plan_id=2)
+        AccountPlanAssignement.objects.create(user=user, account_plan_id=AccountPlan.PREMIUM_ID)
         specific_image = Image.objects.create(
             uploader=user, image_file=File(open('static/test_image.jpg', 'rb'))
         )

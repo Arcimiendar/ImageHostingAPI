@@ -64,13 +64,11 @@ class TestExperibableLink(TestCase):
         self.client.force_login(self.user)
         response = self.client.post(
             reverse('expirable-link'), data={
-                'creator': self.user.id,
                 'image': self.image.id,
                 'experation_period': '5:00'
             }
         )
         self.assertIn('experation_period', response.data)
-        self.assertIn('creator', response.data)
         self.assertIn('image', response.data)
 
         response = self.client.get(reverse('expirable-link'))
@@ -116,10 +114,8 @@ class TestImage(TestCase):
         self.client.force_login(self.user)
         with open('static/test_image.jpg', 'rb') as f:
             response = self.client.post(reverse('image'), data={
-                'uploader': self.user.id,
                 'image_file': f
             })
-        self.assertIn('uploader', response.data)
         self.assertIn('image_file', response.data)
         self.assertIn('id', response.data)
 

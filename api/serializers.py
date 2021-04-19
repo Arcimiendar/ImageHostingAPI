@@ -4,12 +4,16 @@ from api.models import Image, ExpirableLink, Thumbnail, ThumbnailSize
 
 
 class ImageSerializer(serializers.ModelSerializer):
+    uploader = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Image
         fields = '__all__'
 
 
 class ExpirableLinkSerializer(serializers.ModelSerializer):
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = ExpirableLink
         fields = '__all__'
